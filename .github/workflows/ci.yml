@@ -61,6 +61,8 @@ jobs:
           docker pull "$BASE_IMAGE"
           docker pull "$CORE_CI_IMAGE:core--$BRANCH_REF" ||
             docker pull "$CORE_IMAGE:latest"
+          docker pull "$CORE_CI_IMAGE:ci--$BRANCH_REF" ||
+            "$CORE_CI_IMAGE:latest" || true
       - name: Build dependabot-core image
         run: |
           DOCKER_BUILDKIT=1 docker build \
@@ -77,11 +79,19 @@ jobs:
           docker push "$CORE_CI_IMAGE:core--$BRANCH_REF"
       - name: Build dependabot-core-ci image
         run: |
-          rm .dockerignore
-          docker build \
+          DOCKER_BUILDKIT=1 docker build \
             -t "$CORE_CI_IMAGE:latest" \
+            -t "$CORE_CI_IMAGE:ci--$BRANCH_REF" \
             -f Dockerfile.ci \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --cache-from "$CORE_CI_IMAGE:latest" \
+            --cache-from "$CORE_CI_IMAGE:ci--$BRANCH_REF" \
             .
+      - name: Push dependabot-core-ci image to Docker registry
+        if: env.DOCKER_LOGGED_IN == 'true'
+        run: |
+          docker push "$CORE_CI_IMAGE:latest"
+          docker push "$CORE_CI_IMAGE:ci--$BRANCH_REF"
       - name: Run Python flake8 linting
         if: matrix.suite.name == 'python'
         run: |
