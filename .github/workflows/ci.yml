@@ -106,6 +106,7 @@ jobs:
           docker run \
             -v "$(pwd)/.rubocop.yml:$CODE_DIR/.rubocop.yml" \
             -v "$(pwd)/bin:$CODE_DIR/bin" \
+            -v "$(pwd)/script:$CODE_DIR/script" \
             -v "$(pwd)/common/.rubocop.yml:$CODE_DIR/common/.rubocop.yml" \
             -v "$(pwd)/common/Gemfile:$CODE_DIR/common/Gemfile" \
             -v "$(pwd)/common/dependabot-common.gemspec:$CODE_DIR/common/dependabot-common.gemspec" \
