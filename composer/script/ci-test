@@ -1,6 +1,6 @@
 #!/bin/sh
 
-../script/ci-setup
+/home/dependabot/dependabot-core/script/ci-setup
 
 bundle install
 bundle exec rubocop .
