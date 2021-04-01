@@ -56,22 +56,22 @@ jobs:
           echo "DEPENDABOT_TEST_ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - name: Pull Docker base images & warm Docker cache
         run: |
-          docker pull "$CORE_CI_IMAGE:$BRANCH_REF" ||
+          docker pull "$CORE_CI_IMAGE:core--$BRANCH_REF" ||
             docker pull "$CORE_CI_IMAGE:latest" || true
       - name: Build dependabot-core image
         run: |
           DOCKER_BUILDKIT=1 docker build \
             -t "$CORE_CI_IMAGE:latest" \
-            -t "$CORE_CI_IMAGE:$BRANCH_REF" \
+            -t "$CORE_CI_IMAGE:core--$BRANCH_REF" \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --cache-from "$CORE_CI_IMAGE:$BRANCH_REF" \
+            --cache-from "$CORE_CI_IMAGE:core--$BRANCH_REF" \
             --cache-from "$CORE_CI_IMAGE:latest" \
             .
       - name: Push dependabot-core ci image to Docker registry
         if: env.DOCKER_LOGGED_IN == 'true'
         run: |
           docker push "$CORE_CI_IMAGE:latest"
-          docker push "$CORE_CI_IMAGE:$BRANCH_REF"
+          docker push "$CORE_CI_IMAGE:core--$BRANCH_REF"
       - name: Run Python flake8 linting
         if: matrix.suite.name == 'python'
         run: |
