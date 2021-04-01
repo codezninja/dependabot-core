@@ -60,37 +60,38 @@ jobs:
         run: |
           docker pull "$BASE_IMAGE"
           docker pull "$CORE_CI_IMAGE:core--$BRANCH_REF" ||
-            docker pull "$CORE_IMAGE:latest"
+            docker pull "$CORE_CI_IMAGE:core-latest"
           docker pull "$CORE_CI_IMAGE:ci--$BRANCH_REF" ||
-            "$CORE_CI_IMAGE:latest" || true
+            "$CORE_CI_IMAGE:ci-latest" || true
       - name: Build dependabot-core image
         run: |
           DOCKER_BUILDKIT=1 docker build \
-            -t "$CORE_IMAGE:latest" \
+            -t "$CORE_CI_IMAGE:core-latest" \
             -t "$CORE_CI_IMAGE:core--$BRANCH_REF" \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --cache-from "$BASE_IMAGE" \
             --cache-from "$CORE_CI_IMAGE:core--$BRANCH_REF" \
-            --cache-from "$CORE_IMAGE:latest" \
+            --cache-from "$CORE_CI_IMAGE:core-latest" \
             .
       - name: Push dependabot-core image to Docker registry
         if: env.DOCKER_LOGGED_IN == 'true'
         run: |
+          docker push "$CORE_CI_IMAGE:core-latest"
           docker push "$CORE_CI_IMAGE:core--$BRANCH_REF"
       - name: Build dependabot-core-ci image
         run: |
           DOCKER_BUILDKIT=1 docker build \
-            -t "$CORE_CI_IMAGE:latest" \
+            -t "$CORE_CI_IMAGE:ci-latest" \
             -t "$CORE_CI_IMAGE:ci--$BRANCH_REF" \
             -f Dockerfile.ci \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --cache-from "$CORE_CI_IMAGE:latest" \
+            --cache-from "$CORE_CI_IMAGE:ci-latest" \
             --cache-from "$CORE_CI_IMAGE:ci--$BRANCH_REF" \
             .
       - name: Push dependabot-core-ci image to Docker registry
         if: env.DOCKER_LOGGED_IN == 'true'
         run: |
-          docker push "$CORE_CI_IMAGE:latest"
+          docker push "$CORE_CI_IMAGE:ci-latest"
           docker push "$CORE_CI_IMAGE:ci--$BRANCH_REF"
       - name: Run Python flake8 linting
         if: matrix.suite.name == 'python'
