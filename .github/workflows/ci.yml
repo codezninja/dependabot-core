@@ -79,10 +79,11 @@ jobs:
       - name: Build dependabot-core-ci image
         run: |
           rm .dockerignore
-          docker build \
+          DOCKER_BUILDKIT=1 docker build \
             -t "$CORE_CI_IMAGE:latest" \
             -t "$CORE_CI_IMAGE:ci--$BRANCH_REF" \
             -f Dockerfile.ci \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
             --cache-from "$CORE_CI_IMAGE:latest" \
             --cache-from "$CORE_CI_IMAGE:ci--$BRANCH_REF" \
             .
