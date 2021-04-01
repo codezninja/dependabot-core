@@ -106,14 +106,16 @@ jobs:
         if: matrix.suite.name == 'bundler1'
         run: |
           docker run --rm \
-            -v "$(pwd)/bundler/helpers:$CODE_DIR/bundler/helpers" \
+            -v "$(pwd)/bundler/helpers/v1:$CODE_DIR/bundler/helpers/v1" \
+            -v "$(pwd)/bundler/spec/fixtures:$CODE_DIR/bundler/spec/fixtures" \
             "$CORE_CI_IMAGE" bash -c \
             "cd /home/dependabot/dependabot-core/bundler/helpers/v1 && BUNDLER_VERSION=1 bundle install && BUNDLER_VERSION=1 bundle exec rspec spec"
       - name: Run bundler v2 native helper specs
         if: matrix.suite.name == 'bundler2'
         run: |
           docker run --rm \
-            -v "$(pwd)/bundler/helpers:$CODE_DIR/bundler/helpers" \
+            -v "$(pwd)/bundler/helpers/v2:$CODE_DIR/bundler/helpers/v2" \
+            -v "$(pwd)/bundler/spec/fixtures:$CODE_DIR/bundler/spec/fixtures" \
             "$CORE_CI_IMAGE" bash -c \
             "cd /home/dependabot/dependabot-core/bundler/helpers/v2 && BUNDLER_VERSION=2 bundle install && BUNDLER_VERSION=2 bundle exec rspec spec"
       - name: Run ${{ matrix.suite.name }} tests
