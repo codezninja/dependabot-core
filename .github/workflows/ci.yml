@@ -57,7 +57,7 @@ jobs:
       - name: Pull Docker base images & warm Docker cache
         run: |
           docker pull "$CORE_CI_IMAGE:$BRANCH_REF" ||
-            docker pull "$CORE_CI_IMAGE:latest"
+            docker pull "$CORE_CI_IMAGE:latest" || true
       - name: Build dependabot-core image
         run: |
           DOCKER_BUILDKIT=1 docker build \
