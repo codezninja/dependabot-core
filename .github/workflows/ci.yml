@@ -87,8 +87,7 @@ jobs:
           docker run --rm \
             -v "$(pwd)/bundler/helpers/v1:$CODE_DIR/bundler/helpers/v1" \
             -v "$(pwd)/bundler/spec/fixtures:$CODE_DIR/bundler/spec/fixtures" \
-            --env "BUNDLE_PATH=/home/dependabot/.bundle" --env "BUNDLE_BIN=.bundle/binstubs" \
-            --env "PATH=.bundle/binstubs:$PATH:/home/dependabot/.bundle/bin" \
+            --env "BUNDLE_PATH=/home/dependabot/.bundle" \
             -w "/home/dependabot/dependabot-core" \
             "$CORE_CI_IMAGE" bash -c \
             "cd /home/dependabot/dependabot-core/bundler/helpers/v1 && BUNDLER_VERSION=1 bundle install && BUNDLER_VERSION=1 bundle exec rspec spec"
@@ -98,8 +97,7 @@ jobs:
           docker run --rm \
             -v "$(pwd)/bundler/helpers/v2:$CODE_DIR/bundler/helpers/v2" \
             -v "$(pwd)/bundler/spec/fixtures:$CODE_DIR/bundler/spec/fixtures" \
-            --env "BUNDLE_PATH=/home/dependabot/.bundle" --env "BUNDLE_BIN=.bundle/binstubs" \
-            --env "PATH=.bundle/binstubs:$PATH:/home/dependabot/.bundle/bin" \
+            --env "BUNDLE_PATH=/home/dependabot/.bundle" \
             -w "/home/dependabot/dependabot-core" \
             "$CORE_CI_IMAGE" bash -c \
             "cd /home/dependabot/dependabot-core/bundler/helpers/v2 && BUNDLER_VERSION=2 bundle install && BUNDLER_VERSION=2 bundle exec rspec spec"
@@ -223,8 +221,7 @@ jobs:
             -v "$(pwd)/omnibus/spec:$CODE_DIR/omnibus/spec" \
             -v "$(pwd)/omnibus/script:$CODE_DIR/omnibus/script" \
             --env "CI=true" --env "DEPENDABOT_TEST_ACCESS_TOKEN=$DEPENDABOT_TEST_ACCESS_TOKEN" --env "SUITE_NAME=${{ matrix.suite.name }}" \
-            --env "BUNDLE_PATH=/home/dependabot/.bundle" --env "BUNDLE_BIN=.bundle/binstubs" \
-            --env "PATH=.bundle/binstubs:$PATH:/home/dependabot/.bundle/bin" \
+            --env "BUNDLE_PATH=/home/dependabot/.bundle" \
             -w "/home/dependabot/dependabot-core" \
             --rm "$CORE_CI_IMAGE" bash -c \
             "cd /home/dependabot/dependabot-core/${{ matrix.suite.path }} && ./script/ci-test"
