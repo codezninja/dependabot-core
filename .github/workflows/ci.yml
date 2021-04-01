@@ -41,8 +41,6 @@ jobs:
       - name: Prepare environment variables
         run: |
           echo "BRANCH_REF=$(echo '${{ github.ref }}' | sed -E 's/[^A-Za-z0-9]+/-/g')" >> $GITHUB_ENV
-          echo "BASE_IMAGE=ubuntu:18.04" >> $GITHUB_ENV
-          echo "CORE_IMAGE=dependabot/dependabot-core" >> $GITHUB_ENV
           echo "CORE_CI_IMAGE=ghcr.io/${{ github.repository_owner }}/dependabot-core/dependabot-core-ci" >> $GITHUB_ENV
           echo "CODE_DIR=/home/dependabot/dependabot-core" >> $GITHUB_ENV
       - name: Log in to Docker registry
@@ -58,41 +56,22 @@ jobs:
           echo "DEPENDABOT_TEST_ACCESS_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
       - name: Pull Docker base images & warm Docker cache
         run: |
-          docker pull "$BASE_IMAGE"
-          docker pull "$CORE_CI_IMAGE:core--$BRANCH_REF" ||
-            docker pull "$CORE_CI_IMAGE:core-latest"
-          docker pull "$CORE_CI_IMAGE:ci--$BRANCH_REF" ||
-            "$CORE_CI_IMAGE:ci-latest" || true
+          docker pull "$CORE_CI_IMAGE:$BRANCH_REF" ||
+            docker pull "$CORE_CI_IMAGE:latest"
       - name: Build dependabot-core image
         run: |
           DOCKER_BUILDKIT=1 docker build \
-            -t "$CORE_CI_IMAGE:core-latest" \
-            -t "$CORE_CI_IMAGE:core--$BRANCH_REF" \
+            -t "$CORE_CI_IMAGE:latest" \
+            -t "$CORE_CI_IMAGE:$BRANCH_REF" \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --cache-from "$BASE_IMAGE" \
-            --cache-from "$CORE_CI_IMAGE:core--$BRANCH_REF" \
-            --cache-from "$CORE_CI_IMAGE:core-latest" \
+            --cache-from "$CORE_CI_IMAGE:$BRANCH_REF" \
+            --cache-from "$CORE_CI_IMAGE:latest" \
             .
-      - name: Push dependabot-core image to Docker registry
+      - name: Push dependabot-core ci image to Docker registry
         if: env.DOCKER_LOGGED_IN == 'true'
         run: |
-          docker push "$CORE_CI_IMAGE:core-latest"
-          docker push "$CORE_CI_IMAGE:core--$BRANCH_REF"
-      - name: Build dependabot-core-ci image
-        run: |
-          DOCKER_BUILDKIT=1 docker build \
-            -t "$CORE_CI_IMAGE:ci-latest" \
-            -t "$CORE_CI_IMAGE:ci--$BRANCH_REF" \
-            -f Dockerfile.ci \
-            --build-arg BUILDKIT_INLINE_CACHE=1 \
-            --cache-from "$CORE_CI_IMAGE:ci-latest" \
-            --cache-from "$CORE_CI_IMAGE:ci--$BRANCH_REF" \
-            .
-      - name: Push dependabot-core-ci image to Docker registry
-        if: env.DOCKER_LOGGED_IN == 'true'
-        run: |
-          docker push "$CORE_CI_IMAGE:ci-latest"
-          docker push "$CORE_CI_IMAGE:ci--$BRANCH_REF"
+          docker push "$CORE_CI_IMAGE:latest"
+          docker push "$CORE_CI_IMAGE:$BRANCH_REF"
       - name: Run Python flake8 linting
         if: matrix.suite.name == 'python'
         run: |
@@ -108,6 +87,9 @@ jobs:
           docker run --rm \
             -v "$(pwd)/bundler/helpers/v1:$CODE_DIR/bundler/helpers/v1" \
             -v "$(pwd)/bundler/spec/fixtures:$CODE_DIR/bundler/spec/fixtures" \
+            --env "BUNDLE_PATH=/home/dependabot/.bundle" --env "BUNDLE_BIN=.bundle/binstubs" \
+            --env "PATH=.bundle/binstubs:$PATH:/home/dependabot/.bundle/bin" \
+            -w "/home/dependabot/dependabot-core"
             "$CORE_CI_IMAGE" bash -c \
             "cd /home/dependabot/dependabot-core/bundler/helpers/v1 && BUNDLER_VERSION=1 bundle install && BUNDLER_VERSION=1 bundle exec rspec spec"
       - name: Run bundler v2 native helper specs
@@ -116,6 +98,9 @@ jobs:
           docker run --rm \
             -v "$(pwd)/bundler/helpers/v2:$CODE_DIR/bundler/helpers/v2" \
             -v "$(pwd)/bundler/spec/fixtures:$CODE_DIR/bundler/spec/fixtures" \
+            --env "BUNDLE_PATH=/home/dependabot/.bundle" --env "BUNDLE_BIN=.bundle/binstubs" \
+            --env "PATH=.bundle/binstubs:$PATH:/home/dependabot/.bundle/bin" \
+            -w "/home/dependabot/dependabot-core"
             "$CORE_CI_IMAGE" bash -c \
             "cd /home/dependabot/dependabot-core/bundler/helpers/v2 && BUNDLER_VERSION=2 bundle install && BUNDLER_VERSION=2 bundle exec rspec spec"
       - name: Run ${{ matrix.suite.name }} tests
@@ -238,5 +223,8 @@ jobs:
             -v "$(pwd)/omnibus/spec:$CODE_DIR/omnibus/spec" \
             -v "$(pwd)/omnibus/script:$CODE_DIR/omnibus/script" \
             --env "CI=true" --env "DEPENDABOT_TEST_ACCESS_TOKEN=$DEPENDABOT_TEST_ACCESS_TOKEN" --env "SUITE_NAME=${{ matrix.suite.name }}" \
+            --env "BUNDLE_PATH=/home/dependabot/.bundle" --env "BUNDLE_BIN=.bundle/binstubs" \
+            --env "PATH=.bundle/binstubs:$PATH:/home/dependabot/.bundle/bin" \
+            -w "/home/dependabot/dependabot-core"
             --rm "$CORE_CI_IMAGE" bash -c \
             "cd /home/dependabot/dependabot-core/${{ matrix.suite.path }} && ./script/ci-test"

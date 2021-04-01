@@ -1,9 +1,0 @@
-FROM dependabot/dependabot-core
-ARG CODE_DIR=/home/dependabot/dependabot-core
-WORKDIR ${CODE_DIR}
-
-ENV BUNDLE_PATH="/home/dependabot/.bundle" \
-  BUNDLE_BIN=".bundle/binstubs" \
-  PATH=".bundle/binstubs:$PATH:/home/dependabot/.bundle/bin"
-
-RUN git config --global user.name dependabot-ci && git config --global user.email no-reply@github.com
